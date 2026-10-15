@@ -2,40 +2,38 @@
 
 import React, { useState } from 'react';
 import {
-  AuthMode,
-  ClientLoginFormData,
-  ClientRegisterFormData,
-  OwnerLoginFormData,
-  FormValidationErrors,
-} from '@/types/auth';
-import { TabSelector } from '@/components/ui/TabSelector';
-import { FormInput } from '@/components/ui/FormInput';
-import { PasswordInput } from '@/components/ui/PasswordInput';
-import { NoticeBanner } from '@/components/ui/NoticeBanner';
-import {
   User,
   Mail,
+  Lock,
   Globe,
   Phone,
-  ShieldCheck,
+  Eye,
+  EyeOff,
+  Shield,
   Building,
   ArrowRight,
+  AlertCircle,
+  X,
   Loader2,
   Sparkles,
 } from 'lucide-react';
 
-export default function AuthenticationPage() {
+type AuthMode = 'client-login' | 'client-register' | 'owner-login';
+
+export default function AuthPage() {
   const [mode, setMode] = useState<AuthMode>('client-login');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showDisconnectedNotice, setShowDisconnectedNotice] = useState(false);
+  const [showNotice, setShowNotice] = useState(false);
 
-  // Form States
-  const [clientLoginForm, setClientLoginForm] = useState<ClientLoginFormData>({
-    email: '',
-    password: '',
-  });
+  // Password visibility states
+  const [showClientPass, setShowClientPass] = useState(false);
+  const [showRegPass, setShowRegPass] = useState(false);
+  const [showRegConfirmPass, setShowRegConfirmPass] = useState(false);
+  const [showOwnerPass, setShowOwnerPass] = useState(false);
 
-  const [clientRegisterForm, setClientRegisterForm] = useState<ClientRegisterFormData>({
+  // Form Fields
+  const [clientLogin, setClientLogin] = useState({ email: '', password: '' });
+  const [clientRegister, setClientRegister] = useState({
     fullName: '',
     email: '',
     password: '',
@@ -43,405 +41,407 @@ export default function AuthenticationPage() {
     country: '',
     whatsappNumber: '',
   });
+  const [ownerLogin, setOwnerLogin] = useState({ email: '', password: '' });
 
-  const [ownerLoginForm, setOwnerLoginForm] = useState<OwnerLoginFormData>({
-    email: '',
-    password: '',
-  });
+  // Field Errors
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  // Validation Error States
-  const [errors, setErrors] = useState<FormValidationErrors>({});
-
-  // Reset errors and notice when switching modes
-  const handleModeSwitch = (newMode: AuthMode) => {
+  const switchMode = (newMode: AuthMode) => {
     setMode(newMode);
     setErrors({});
-    setShowDisconnectedNotice(false);
+    setShowNotice(false);
   };
 
-  // Validation Helpers
-  const validateEmail = (email: string): boolean => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
+  const validateEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
 
-  const validatePhone = (phone: string): boolean => {
-    if (!phone.trim()) return true; // optional
-    return /^\+?[1-9]\d{6,14}$/.test(phone.trim());
-  };
-
-  // Handlers
-  const handleClientLoginSubmit = async (e: React.FormEvent) => {
+  // Submission handlers
+  const handleClientLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    setShowDisconnectedNotice(false);
-    const newErrors: FormValidationErrors = {};
+    setShowNotice(false);
+    const errs: { [key: string]: string } = {};
 
-    if (!clientLoginForm.email.trim()) {
-      newErrors.email = 'Email address is required';
-    } else if (!validateEmail(clientLoginForm.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
+    if (!clientLogin.email.trim()) errs.email = 'Email address is required';
+    else if (!validateEmail(clientLogin.email)) errs.email = 'Invalid email address';
 
-    if (!clientLoginForm.password) {
-      newErrors.password = 'Password is required';
-    }
+    if (!clientLogin.password) errs.password = 'Password is required';
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
       return;
     }
 
     setErrors({});
     setIsSubmitting(true);
-
-    // Simulate transient client processing, then present unconfigured notice
     setTimeout(() => {
       setIsSubmitting(false);
-      setShowDisconnectedNotice(true);
-    }, 600);
+      setShowNotice(true);
+    }, 500);
   };
 
-  const handleClientRegisterSubmit = async (e: React.FormEvent) => {
+  const handleClientRegister = (e: React.FormEvent) => {
     e.preventDefault();
-    setShowDisconnectedNotice(false);
-    const newErrors: FormValidationErrors = {};
+    setShowNotice(false);
+    const errs: { [key: string]: string } = {};
 
-    if (!clientRegisterForm.fullName.trim() || clientRegisterForm.fullName.trim().length < 2) {
-      newErrors.fullName = 'Full name must be at least 2 characters';
+    if (!clientRegister.fullName.trim() || clientRegister.fullName.trim().length < 2) {
+      errs.fullName = 'Full name must be at least 2 characters';
+    }
+    if (!clientRegister.email.trim()) errs.email = 'Email is required';
+    else if (!validateEmail(clientRegister.email)) errs.email = 'Invalid email address';
+
+    if (!clientRegister.country.trim() || clientRegister.country.trim().length < 2) {
+      errs.country = 'Country is required';
     }
 
-    if (!clientRegisterForm.email.trim()) {
-      newErrors.email = 'Email address is required';
-    } else if (!validateEmail(clientRegisterForm.email)) {
-      newErrors.email = 'Please enter a valid email address';
+    if (!clientRegister.password) errs.password = 'Password is required';
+    else if (clientRegister.password.length < 8) {
+      errs.password = 'Password must be at least 8 characters';
     }
 
-    if (!clientRegisterForm.country.trim() || clientRegisterForm.country.trim().length < 2) {
-      newErrors.country = 'Country is required';
+    if (clientRegister.password !== clientRegister.confirmPassword) {
+      errs.confirmPassword = 'Passwords do not match';
     }
 
-    if (clientRegisterForm.whatsappNumber && !validatePhone(clientRegisterForm.whatsappNumber)) {
-      newErrors.whatsappNumber = 'Please enter a valid international phone format (e.g., +1234567890)';
-    }
-
-    if (!clientRegisterForm.password) {
-      newErrors.password = 'Password is required';
-    } else if (clientRegisterForm.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters long';
-    } else if (!/[A-Z]/.test(clientRegisterForm.password)) {
-      newErrors.password = 'Must contain at least one uppercase letter';
-    } else if (!/[a-z]/.test(clientRegisterForm.password)) {
-      newErrors.password = 'Must contain at least one lowercase letter';
-    } else if (!/[0-9]/.test(clientRegisterForm.password)) {
-      newErrors.password = 'Must contain at least one number';
-    } else if (!/[^A-Za-z0-9]/.test(clientRegisterForm.password)) {
-      newErrors.password = 'Must contain at least one special character';
-    }
-
-    if (clientRegisterForm.password !== clientRegisterForm.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
       return;
     }
 
     setErrors({});
     setIsSubmitting(true);
-
     setTimeout(() => {
       setIsSubmitting(false);
-      setShowDisconnectedNotice(true);
-    }, 700);
+      setShowNotice(true);
+    }, 500);
   };
 
-  const handleOwnerLoginSubmit = async (e: React.FormEvent) => {
+  const handleOwnerLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    setShowDisconnectedNotice(false);
-    const newErrors: FormValidationErrors = {};
+    setShowNotice(false);
+    const errs: { [key: string]: string } = {};
 
-    if (!ownerLoginForm.email.trim()) {
-      newErrors.email = 'Company email address is required';
-    } else if (!validateEmail(ownerLoginForm.email)) {
-      newErrors.email = 'Please enter a valid company email';
-    }
+    if (!ownerLogin.email.trim()) errs.email = 'Company email is required';
+    else if (!validateEmail(ownerLogin.email)) errs.email = 'Invalid email address';
 
-    if (!ownerLoginForm.password) {
-      newErrors.password = 'Password is required';
-    }
+    if (!ownerLogin.password) errs.password = 'Password is required';
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
       return;
     }
 
     setErrors({});
     setIsSubmitting(true);
-
     setTimeout(() => {
       setIsSubmitting(false);
-      setShowDisconnectedNotice(true);
-    }, 600);
+      setShowNotice(true);
+    }, 500);
   };
 
   return (
-    <main className="min-h-screen flex flex-col justify-center items-center px-4 py-12 relative overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black">
-      {/* Decorative ambient gradients */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-indigo-600/10 blur-[120px] pointer-events-none rounded-full" />
-      <div className="absolute bottom-0 right-1/4 w-[400px] h-[250px] bg-sky-600/10 blur-[100px] pointer-events-none rounded-full" />
-
-      <div className="w-full max-w-lg relative z-10">
-        {/* Header Branding */}
-        <div className="text-center mb-8 space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-medium tracking-wide">
+    <main className="min-h-screen flex items-center justify-center p-4 bg-slate-950 text-slate-100">
+      <div className="w-full max-w-lg space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-medium">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>sbuweb Architecture Foundation</span>
+            <span>sbuweb Authentication</span>
           </div>
-
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white">
-            {mode === 'client-login' && 'Client Portal Login'}
-            {mode === 'client-register' && 'Create Client Account'}
-            {mode === 'owner-login' && 'Company Owner Portal'}
+            {mode === 'client-login' && 'Client Portal'}
+            {mode === 'client-register' && 'Client Registration'}
+            {mode === 'owner-login' && 'Owner Administration'}
           </h1>
-          <p className="text-sm text-slate-400 max-w-sm mx-auto">
-            {mode === 'client-login' && 'Access your client workspace, active proposals, and projects.'}
-            {mode === 'client-register' && 'Register your company or individual client profile.'}
-            {mode === 'owner-login' && 'Restricted access for verified company administration.'}
+          <p className="text-sm text-slate-400">
+            {mode === 'client-login' && 'Sign in to access your client projects and account.'}
+            {mode === 'client-register' && 'Create your client account to get started.'}
+            {mode === 'owner-login' && 'Company-provisioned credentials only.'}
           </p>
         </div>
 
-        {/* Main Card Container */}
-        <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 md:p-8 backdrop-blur-xl shadow-2xl space-y-6">
-          {/* Tab Switcher */}
-          <TabSelector currentMode={mode} onSelectMode={handleModeSwitch} />
+        {/* Card */}
+        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl space-y-6">
+          {/* Tabs */}
+          <div className="grid grid-cols-3 gap-1 p-1 bg-slate-950 rounded-xl border border-slate-800">
+            <button
+              type="button"
+              onClick={() => switchMode('client-login')}
+              className={`py-2 px-2 text-xs md:text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5 ${
+                mode === 'client-login' ? 'bg-indigo-600 text-white font-semibold' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <User className="w-4 h-4" />
+              <span>Login</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => switchMode('client-register')}
+              className={`py-2 px-2 text-xs md:text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5 ${
+                mode === 'client-register' ? 'bg-indigo-600 text-white font-semibold' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <User className="w-4 h-4" />
+              <span>Register</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => switchMode('owner-login')}
+              className={`py-2 px-2 text-xs md:text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5 ${
+                mode === 'owner-login' ? 'bg-indigo-600 text-white font-semibold' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Shield className="w-4 h-4" />
+              <span>Owner</span>
+            </button>
+          </div>
 
-          {/* Prompt / Notification Banner on Valid Submission */}
-          {showDisconnectedNotice && (
-            <NoticeBanner onDismiss={() => setShowDisconnectedNotice(false)} />
+          {/* Unconfigured Notice */}
+          {showNotice && (
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-200 relative">
+              <button
+                type="button"
+                onClick={() => setShowNotice(false)}
+                className="absolute top-3 right-3 text-amber-400 hover:text-amber-100"
+                aria-label="Close message"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <h4 className="text-sm font-semibold text-amber-300">Authentication is not connected yet</h4>
+                  <p className="text-xs text-amber-200/90 leading-relaxed">
+                    Form input validated successfully. The frontend is currently decoupled and database/Supabase integration is not yet active.
+                  </p>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Form 1: Client Login */}
           {mode === 'client-login' && (
-            <form onSubmit={handleClientLoginSubmit} noValidate className="space-y-4">
-              <FormInput
-                id="client-email"
-                type="email"
-                label="Email Address"
-                placeholder="client@company.com"
-                required
-                icon={<Mail className="w-4 h-4" />}
-                value={clientLoginForm.email}
-                error={errors.email}
-                onChange={(e) => setClientLoginForm({ ...clientLoginForm, email: e.target.value })}
-              />
-
-              <PasswordInput
-                id="client-password"
-                label="Password"
-                placeholder="••••••••"
-                required
-                value={clientLoginForm.password}
-                error={errors.password}
-                onChange={(e) => setClientLoginForm({ ...clientLoginForm, password: e.target.value })}
-              />
-
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full flex items-center justify-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/25 transition-all duration-200 active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Verifying Form Input...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Sign In as Client</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
+            <form onSubmit={handleClientLogin} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium uppercase tracking-wider text-slate-300">Email Address</label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+                  <input
+                    type="email"
+                    placeholder="client@example.com"
+                    value={clientLogin.email}
+                    onChange={(e) => setClientLogin({ ...clientLogin, email: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+                {errors.email && <p className="text-xs text-rose-400">• {errors.email}</p>}
               </div>
 
-              <div className="text-center pt-2">
-                <button
-                  type="button"
-                  onClick={() => handleModeSwitch('client-register')}
-                  className="text-xs text-slate-400 hover:text-indigo-400 transition-colors"
-                >
-                  Don&apos;t have an account yet? <span className="font-semibold text-indigo-400 underline underline-offset-2">Register here</span>
-                </button>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium uppercase tracking-wider text-slate-300">Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+                  <input
+                    type={showClientPass ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={clientLogin.password}
+                    onChange={(e) => setClientLogin({ ...clientLogin, password: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-10 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowClientPass(!showClientPass)}
+                    className="absolute right-3.5 top-3 text-slate-500 hover:text-slate-300"
+                  >
+                    {showClientPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                {errors.password && <p className="text-xs text-rose-400">• {errors.password}</p>}
               </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+              >
+                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Sign In as Client</span>}
+                {!isSubmitting && <ArrowRight className="w-4 h-4" />}
+              </button>
             </form>
           )}
 
-          {/* Form 2: Client Registration */}
+          {/* Form 2: Client Register */}
           {mode === 'client-register' && (
-            <form onSubmit={handleClientRegisterSubmit} noValidate className="space-y-4">
-              <FormInput
-                id="register-full-name"
-                type="text"
-                label="Full Name"
-                placeholder="Jane Doe"
-                required
-                icon={<User className="w-4 h-4" />}
-                value={clientRegisterForm.fullName}
-                error={errors.fullName}
-                onChange={(e) => setClientRegisterForm({ ...clientRegisterForm, fullName: e.target.value })}
-              />
-
-              <FormInput
-                id="register-email"
-                type="email"
-                label="Email Address"
-                placeholder="jane.doe@example.com"
-                required
-                icon={<Mail className="w-4 h-4" />}
-                value={clientRegisterForm.email}
-                error={errors.email}
-                onChange={(e) => setClientRegisterForm({ ...clientRegisterForm, email: e.target.value })}
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormInput
-                  id="register-country"
-                  type="text"
-                  label="Country"
-                  placeholder="United States"
-                  required
-                  icon={<Globe className="w-4 h-4" />}
-                  value={clientRegisterForm.country}
-                  error={errors.country}
-                  onChange={(e) => setClientRegisterForm({ ...clientRegisterForm, country: e.target.value })}
-                />
-
-                <FormInput
-                  id="register-whatsapp"
-                  type="tel"
-                  label="WhatsApp"
-                  hint="(Optional)"
-                  placeholder="+1234567890"
-                  icon={<Phone className="w-4 h-4" />}
-                  value={clientRegisterForm.whatsappNumber}
-                  error={errors.whatsappNumber}
-                  onChange={(e) => setClientRegisterForm({ ...clientRegisterForm, whatsappNumber: e.target.value })}
-                />
+            <form onSubmit={handleClientRegister} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium uppercase tracking-wider text-slate-300">Full Name</label>
+                <div className="relative">
+                  <User className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+                  <input
+                    type="text"
+                    placeholder="Jane Doe"
+                    value={clientRegister.fullName}
+                    onChange={(e) => setClientRegister({ ...clientRegister, fullName: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+                {errors.fullName && <p className="text-xs text-rose-400">• {errors.fullName}</p>}
               </div>
 
-              <PasswordInput
-                id="register-password"
-                label="Password"
-                hint="Min 8 chars, 1 uppercase, 1 symbol"
-                placeholder="••••••••"
-                required
-                value={clientRegisterForm.password}
-                error={errors.password}
-                onChange={(e) => setClientRegisterForm({ ...clientRegisterForm, password: e.target.value })}
-              />
-
-              <PasswordInput
-                id="register-confirm-password"
-                label="Confirm Password"
-                placeholder="••••••••"
-                required
-                value={clientRegisterForm.confirmPassword}
-                error={errors.confirmPassword}
-                onChange={(e) => setClientRegisterForm({ ...clientRegisterForm, confirmPassword: e.target.value })}
-              />
-
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full flex items-center justify-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/25 transition-all duration-200 active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Validating Registration Form...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Complete Client Registration</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium uppercase tracking-wider text-slate-300">Email Address</label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+                  <input
+                    type="email"
+                    placeholder="jane@example.com"
+                    value={clientRegister.email}
+                    onChange={(e) => setClientRegister({ ...clientRegister, email: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+                {errors.email && <p className="text-xs text-rose-400">• {errors.email}</p>}
               </div>
 
-              <div className="text-center pt-2">
-                <button
-                  type="button"
-                  onClick={() => handleModeSwitch('client-login')}
-                  className="text-xs text-slate-400 hover:text-indigo-400 transition-colors"
-                >
-                  Already have a client account? <span className="font-semibold text-indigo-400 underline underline-offset-2">Log in here</span>
-                </button>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium uppercase tracking-wider text-slate-300">Country</label>
+                  <div className="relative">
+                    <Globe className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+                    <input
+                      type="text"
+                      placeholder="United States"
+                      value={clientRegister.country}
+                      onChange={(e) => setClientRegister({ ...clientRegister, country: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                    />
+                  </div>
+                  {errors.country && <p className="text-xs text-rose-400">• {errors.country}</p>}
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium uppercase tracking-wider text-slate-300">WhatsApp (Optional)</label>
+                  <div className="relative">
+                    <Phone className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+                    <input
+                      type="tel"
+                      placeholder="+1234567890"
+                      value={clientRegister.whatsappNumber}
+                      onChange={(e) => setClientRegister({ ...clientRegister, whatsappNumber: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                    />
+                  </div>
+                </div>
               </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium uppercase tracking-wider text-slate-300">Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+                  <input
+                    type={showRegPass ? 'text' : 'password'}
+                    placeholder="Min 8 characters"
+                    value={clientRegister.password}
+                    onChange={(e) => setClientRegister({ ...clientRegister, password: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-10 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowRegPass(!showRegPass)}
+                    className="absolute right-3.5 top-3 text-slate-500 hover:text-slate-300"
+                  >
+                    {showRegPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                {errors.password && <p className="text-xs text-rose-400">• {errors.password}</p>}
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium uppercase tracking-wider text-slate-300">Confirm Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+                  <input
+                    type={showRegConfirmPass ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={clientRegister.confirmPassword}
+                    onChange={(e) => setClientRegister({ ...clientRegister, confirmPassword: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-10 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowRegConfirmPass(!showRegConfirmPass)}
+                    className="absolute right-3.5 top-3 text-slate-500 hover:text-slate-300"
+                  >
+                    {showRegConfirmPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                {errors.confirmPassword && <p className="text-xs text-rose-400">• {errors.confirmPassword}</p>}
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+              >
+                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Create Client Account</span>}
+                {!isSubmitting && <ArrowRight className="w-4 h-4" />}
+              </button>
             </form>
           )}
 
           {/* Form 3: Owner Login */}
           {mode === 'owner-login' && (
-            <form onSubmit={handleOwnerLoginSubmit} noValidate className="space-y-4">
-              <div className="rounded-lg bg-slate-800/40 border border-slate-700/50 p-3 flex items-start gap-3">
-                <ShieldCheck className="w-5 h-5 text-indigo-400 shrink-0 mt-0.5" />
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  Owner credentials are provisioned exclusively by company administration. Public registration for owner privileges is disabled.
-                </p>
+            <form onSubmit={handleOwnerLogin} className="space-y-4">
+              <div className="rounded-lg bg-slate-950 border border-slate-800 p-3 text-xs text-slate-400">
+                Owner accounts are company-provisioned. Self-registration is disabled.
               </div>
 
-              <FormInput
-                id="owner-email"
-                type="email"
-                label="Company-Provided Email"
-                placeholder="executive@sbuweb.internal"
-                required
-                icon={<Building className="w-4 h-4" />}
-                value={ownerLoginForm.email}
-                error={errors.email}
-                onChange={(e) => setOwnerLoginForm({ ...ownerLoginForm, email: e.target.value })}
-              />
-
-              <PasswordInput
-                id="owner-password"
-                label="Website-Specific Password"
-                placeholder="••••••••"
-                required
-                value={ownerLoginForm.password}
-                error={errors.password}
-                onChange={(e) => setOwnerLoginForm({ ...ownerLoginForm, password: e.target.value })}
-              />
-
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full flex items-center justify-center gap-2 rounded-lg bg-slate-100 hover:bg-white text-slate-900 py-3 text-sm font-semibold shadow-lg shadow-slate-950/50 transition-all duration-200 active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin text-slate-900" />
-                      <span>Verifying Owner Form...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Sign In to Owner Portal</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium uppercase tracking-wider text-slate-300">Company Email</label>
+                <div className="relative">
+                  <Building className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+                  <input
+                    type="email"
+                    placeholder="owner@sbuweb.internal"
+                    value={ownerLogin.email}
+                    onChange={(e) => setOwnerLogin({ ...ownerLogin, email: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+                {errors.email && <p className="text-xs text-rose-400">• {errors.email}</p>}
               </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium uppercase tracking-wider text-slate-300">Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+                  <input
+                    type={showOwnerPass ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={ownerLogin.password}
+                    onChange={(e) => setOwnerLogin({ ...ownerLogin, password: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-10 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowOwnerPass(!showOwnerPass)}
+                    className="absolute right-3.5 top-3 text-slate-500 hover:text-slate-300"
+                  >
+                    {showOwnerPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                {errors.password && <p className="text-xs text-rose-400">• {errors.password}</p>}
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-slate-100 hover:bg-white text-slate-900 font-medium py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+              >
+                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin text-slate-900" /> : <span>Sign In as Owner</span>}
+                {!isSubmitting && <ArrowRight className="w-4 h-4" />}
+              </button>
             </form>
           )}
-        </div>
-
-        {/* Footer Isolation Disclaimer */}
-        <div className="text-center mt-6 text-xs text-slate-500">
-          <p>Modular Architecture: Frontend &amp; Backend completely separated.</p>
-          <p className="mt-1">Zero mock sessions • Database credentials unconfigured</p>
         </div>
       </div>
     </main>

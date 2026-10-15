@@ -1,52 +1,32 @@
-import express, { Application, Request, Response, NextFunction } from 'express';
-import helmet from 'helmet';
+import express from 'express';
 import cors from 'cors';
-import morgan from 'morgan';
-import { config } from './config/env.js';
-import { createApiRouter } from './routes/index.js';
-import { errorHandler } from './middlewares/error.middleware.js';
-import { NotFoundError } from './errors/appError.js';
+import dotenv from 'dotenv';
+import { authRouter } from './routes/auth.routes.js';
 
-export const createApp = (): Application => {
-  const app = express();
+dotenv.config();
 
-  // 1. Security & utility middlewares
-  app.use(helmet());
-  app.use(
-    cors({
-      origin: config.CLIENT_ORIGIN,
-      credentials: true,
-      methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
-    })
-  );
+const app = express();
+const PORT = process.env.PORT || 5000;
 
-  if (config.NODE_ENV !== 'test') {
-    app.use(morgan(config.NODE_ENV === 'development' ? 'dev' : 'combined'));
-  }
+// Minimal middleware setup
+app.use(cors());
+app.use(express.json());
 
-  // 2. Body parser
-  app.use(express.json({ limit: '10kb' }));
+// Routes
+app.use('/api/v1', authRouter);
 
-  // 3. API Routes
-  app.use('/api/v1', createApiRouter());
-
-  // 4. Root ping
-  app.get('/', (_req: Request, res: Response) => {
-    res.status(200).json({
-      message: 'sbuweb Backend API is operational',
-      version: 'v1',
-      docs: '/api/v1/health',
-    });
+// Basic health check
+app.get('/api/v1/health', (_req, res) => {
+  res.json({
+    status: 'ok',
+    message: 'Backend server is running',
+    authConnected: false,
   });
+});
 
-  // 5. Handle unmatched 404 routes
-  app.use((req: Request, _res: Response, next: NextFunction) => {
-    next(new NotFoundError(`Endpoint not found: ${req.method} ${req.originalUrl}`));
-  });
+// Start server
+app.listen(PORT, () => {
+  console.log(`Backend server running on http://localhost:${PORT}`);
+});
 
-  // 6. Global error handler
-  app.use(errorHandler);
-
-  return app;
-};
+export default app;

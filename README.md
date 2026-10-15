@@ -1,158 +1,88 @@
-# sbuweb: Authentication & Profile Management Foundation
+# sbuweb: Minimal Authentication Module
 
-A professional company website foundation featuring completely decoupled **Backend** (Express + TypeScript + Zod) and **Frontend** (Next.js App Router + Tailwind CSS) authentication modules, prepared for future PostgreSQL / Supabase integration.
+A clean, minimal, professional authentication module for sbuweb with independent **Backend** (Node.js + Express + TypeScript + Zod) and **Frontend** (Next.js + TypeScript + Tailwind CSS).
 
 ---
 
-## 🏗 System Architecture & Separation
+## 📁 Project Structure
 
-The repository is organized into strictly independent directories:
-
-```
+```text
 sbuweb/
-├── backend/                  # Node.js + Express + TypeScript API
-│   ├── migrations/           # Supabase/PostgreSQL schema & RLS policies
-│   │   ├── 001_initial_schema.sql
-│   │   └── 002_rls_policies.sql
+├── backend/
 │   ├── src/
-│   │   ├── config/           # Environment configuration
-│   │   ├── controllers/      # Route controllers (ClientAuth, OwnerAuth, ClientProfile)
-│   │   ├── errors/           # AppError, ServiceUnavailableError, ValidationError
-│   │   ├── middlewares/      # Zod validation, Auth guard, Owner check, Central error handler
-│   │   ├── repositories/     # Interfaces and unconfigured implementations
-│   │   ├── routes/           # Express router endpoints
-│   │   ├── schemas/          # Zod validation schemas
-│   │   ├── scripts/          # Server-only owner provisioning script template
-│   │   ├── services/         # Business logic layer
-│   │   ├── types/            # TypeScript domain types
-│   │   ├── app.ts            # Express app assembly
-│   │   └── server.ts         # Server HTTP listener
-│   ├── .env.example
+│   │   ├── routes/
+│   │   │   └── auth.routes.ts
+│   │   ├── schemas/
+│   │   │   └── auth.schema.ts
+│   │   └── app.ts
+│   ├── migrations/
+│   │   └── 001_auth_tables.sql
 │   ├── package.json
-│   └── tsconfig.json
-├── frontend/                 # Next.js 14 App Router + Tailwind CSS UI
+│   ├── tsconfig.json
+│   └── .env.example
+│
+├── frontend/
 │   ├── src/
-│   │   ├── app/
-│   │   │   ├── globals.css   # Tailwind directives & theme
-│   │   │   ├── layout.tsx    # Root layout
-│   │   │   └── page.tsx      # EXACTLY ONE UI page: Authentication Portal
-│   │   ├── components/ui/    # Reusable FormInput, PasswordInput, TabSelector, NoticeBanner
-│   │   └── types/            # Form data and validation interfaces
-│   ├── .env.example
+│   │   └── app/
+│   │       ├── page.tsx
+│   │       ├── layout.tsx
+│   │       └── globals.css
 │   ├── package.json
 │   ├── tailwind.config.ts
+│   ├── postcss.config.mjs
+│   ├── next.config.mjs
 │   └── tsconfig.json
-└── docs/                     # Specifications and architectural blueprints
-    ├── api-contract.md       # Full HTTP endpoints, payloads, and error codes
-    └── database-design.md    # Schema, RLS policies, and provisioning flows
+│
+├── .gitignore
+└── README.md
 ```
 
 ---
 
-## 🔒 Architectural Isolation & Safety Guarantees
+## 🔒 Current Status & Design Rules
 
-1. **Zero Database / Supabase Connection:** Neither backend nor frontend connects to Supabase, external databases, or third-party auth services.
-2. **Zero Frontend/Backend Coupling:** The frontend does not make network calls or Axios/Fetch requests to the backend.
-3. **No Fake Authentication:** No mock tokens, simulated logins, in-memory credential storage, or pseudo-success states exist.
-4. **Clean 503 Fallback:** When endpoints requiring database access or token verification are called, the backend responds with a clear `503 SERVICE_UNAVAILABLE` error indicating that integration is pending.
-5. **Clear Decoupling Notice:** The frontend page validates form inputs locally and shows a clear banner notifying the user that authentication is awaiting integration.
-6. **Privilege Boundary Defense:** Clients cannot register as owners. Owner accounts are managed solely server-side and protected by database Row Level Security.
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js 18+ (tested on Node.js v24)
-- npm 9+
+- **Decoupled Architecture:** Frontend and backend are completely separate and independent.
+- **No Active Database / Supabase Connection:** Neither backend nor frontend connects to a live database or Supabase instance yet.
+- **Safe 503 Fallback:** All authentication and profile endpoints respond with `503 NOT_CONFIGURED`.
+- **Zero Mock Data:** No fake authentication, tokens, or mock sessions are implemented.
+- **Single Page UI:** The frontend provides a single, responsive authentication page supporting Client Login, Client Registration, and Owner Login.
 
 ---
 
-### Backend Setup & Build
+## 🛠 Backend API Routes
 
-1. Navigate to the backend directory:
-   ```bash
-   cd backend
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Copy environment configuration:
-   ```bash
-   cp .env.example .env
-   ```
-
-4. Build the TypeScript project (verifies types without Supabase):
-   ```bash
-   npm run build
-   ```
-
-5. Run in development mode:
-   ```bash
-   npm run dev
-   ```
-   The backend server runs on `http://localhost:5000` with the health check available at `http://localhost:5000/api/v1/health`.
+| Method | Endpoint | Description | Status |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/auth/client/register` | Client registration with Zod validation | `503 NOT_CONFIGURED` |
+| `POST` | `/api/v1/auth/client/login` | Client email/password login | `503 NOT_CONFIGURED` |
+| `POST` | `/api/v1/auth/owner/login` | Owner company login | `503 NOT_CONFIGURED` |
+| `GET` | `/api/v1/client/profile` | Client profile retrieval | `503 NOT_CONFIGURED` |
+| `PATCH` | `/api/v1/client/profile` | Client profile update | `503 NOT_CONFIGURED` |
+| `GET` | `/api/v1/health` | Service health check | `200 OK` |
 
 ---
 
-### Frontend Setup & Build
+## 🗄 Database Schema (`001_auth_tables.sql`)
 
-1. Navigate to the frontend directory:
-   ```bash
-   cd frontend
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Build the Next.js production bundle:
-   ```bash
-   npm run build
-   ```
-
-4. Run development server:
-   ```bash
-   npm run dev
-   ```
-   Open `http://localhost:3000` in your browser to view the Authentication Portal.
+- **`public.client_profiles`**: Linked 1:1 to `auth.users(id)` for registered clients (full name, country, whatsapp number, timestamps).
+- **`public.owner_accounts`**: Company-provisioned administrative accounts (`user_id`, `is_active`, `created_at`). Public registration is blocked via Row Level Security (RLS).
 
 ---
 
-## 🔌 Instructions for Connecting Supabase Later
+## 🚀 Running the Projects
 
-When you are ready to enable real authentication and persistence:
-
-### Step 1: Run SQL Migrations in Supabase
-In your Supabase project dashboard, navigate to the **SQL Editor** and run:
-1. `backend/migrations/001_initial_schema.sql` (Creates `client_profiles` and `owner_accounts`)
-2. `backend/migrations/002_rls_policies.sql` (Applies Row Level Security policies)
-
-### Step 2: Configure Backend Environment
-Install the official client in `backend`:
+### Backend
 ```bash
-npm install @supabase/supabase-js
+cd backend
+npm install
+npm run build     # Verify TypeScript compilation
+npm run dev       # Start development server on http://localhost:5000
 ```
-Update `backend/.env`:
-```env
-SUPABASE_URL=https://<your-project-id>.supabase.co
-SUPABASE_ANON_KEY=<your-anon-public-key>
-SUPABASE_SERVICE_ROLE_KEY=<your-service-role-admin-key>
-```
-Swap out the classes in `backend/src/repositories/unconfiguredRepositories.ts` with real implementations calling `@supabase/supabase-js`.
 
-### Step 3: Provision Company Owners
-Execute the secure administrative provisioning script with administrative environment variables:
+### Frontend
 ```bash
-$env:OWNER_EMAIL="admin@company.com"
-$env:OWNER_PASSWORD="SecureTempPassword123!"
-$env:RUN_PROVISION_SCRIPT="true"
-npx tsx src/scripts/provision-owner.ts
+cd frontend
+npm install
+npm run build     # Build production bundle
+npm run dev       # Start development server on http://localhost:3000
 ```
-
-### Step 4: Connect Frontend to Backend (Future Phase)
-Set `NEXT_PUBLIC_API_URL=http://localhost:5000/api/v1` in `frontend/.env.local` and connect form actions to the documented endpoints in `docs/api-contract.md`.
