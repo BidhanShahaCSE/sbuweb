@@ -1,6 +1,6 @@
 # sbuweb: Minimal Authentication Module
 
-A clean, minimal, professional authentication module for sbuweb with independent **Backend** (Node.js + Express + TypeScript + Zod) and **Frontend** (Next.js + TypeScript + Tailwind CSS).
+A clean, minimal, and decoupled authentication foundation for sbuweb with independent **Backend** (Node.js + Express + TypeScript + Zod) and **Frontend** (Next.js App Router + TypeScript + Tailwind CSS).
 
 ---
 
@@ -15,8 +15,6 @@ sbuweb/
 │   │   ├── schemas/
 │   │   │   └── auth.schema.ts
 │   │   └── app.ts
-│   ├── migrations/
-│   │   └── 001_auth_tables.sql
 │   ├── package.json
 │   ├── tsconfig.json
 │   └── .env.example
@@ -39,33 +37,28 @@ sbuweb/
 
 ---
 
-## 🔒 Current Status & Design Rules
+## 🔒 Current Design Rules
 
-- **Decoupled Architecture:** Frontend and backend are completely separate and independent.
-- **No Active Database / Supabase Connection:** Neither backend nor frontend connects to a live database or Supabase instance yet.
-- **Safe 503 Fallback:** All authentication and profile endpoints respond with `503 NOT_CONFIGURED`.
-- **Zero Mock Data:** No fake authentication, tokens, or mock sessions are implemented.
-- **Single Page UI:** The frontend provides a single, responsive authentication page supporting Client Login, Client Registration, and Owner Login.
+- **Strict Decoupling:** Frontend and backend remain independent with zero network coupling.
+- **No Database Connection:** Neither Supabase nor PostgreSQL is connected in this phase.
+- **No Fake Authentication:** No mock tokens, sessions, or hardcoded credentials.
+- **Safe 503 Fallback:** All authentication endpoints return a clean `503 NOT_CONFIGURED` response.
+- **Single Page UI:** A single responsive authentication page with Client Login, Client Registration, and Owner Login. When submitted with valid data, the form displays a notice stating that authentication is not configured yet.
 
 ---
 
 ## 🛠 Backend API Routes
 
+Mounted under `/api/v1`:
+
 | Method | Endpoint | Description | Status |
 | :--- | :--- | :--- | :--- |
-| `POST` | `/api/v1/auth/client/register` | Client registration with Zod validation | `503 NOT_CONFIGURED` |
-| `POST` | `/api/v1/auth/client/login` | Client email/password login | `503 NOT_CONFIGURED` |
-| `POST` | `/api/v1/auth/owner/login` | Owner company login | `503 NOT_CONFIGURED` |
+| `POST` | `/api/v1/auth/client/register` | Client registration validation | `503 NOT_CONFIGURED` |
+| `POST` | `/api/v1/auth/client/login` | Client login validation | `503 NOT_CONFIGURED` |
+| `POST` | `/api/v1/auth/owner/login` | Owner login validation | `503 NOT_CONFIGURED` |
 | `GET` | `/api/v1/client/profile` | Client profile retrieval | `503 NOT_CONFIGURED` |
 | `PATCH` | `/api/v1/client/profile` | Client profile update | `503 NOT_CONFIGURED` |
-| `GET` | `/api/v1/health` | Service health check | `200 OK` |
-
----
-
-## 🗄 Database Schema (`001_auth_tables.sql`)
-
-- **`public.client_profiles`**: Linked 1:1 to `auth.users(id)` for registered clients (full name, country, whatsapp number, timestamps).
-- **`public.owner_accounts`**: Company-provisioned administrative accounts (`user_id`, `is_active`, `created_at`). Public registration is blocked via Row Level Security (RLS).
+| `GET` | `/api/v1/health` | Server health check | `200 OK` |
 
 ---
 
@@ -75,7 +68,7 @@ sbuweb/
 ```bash
 cd backend
 npm install
-npm run build     # Verify TypeScript compilation
+npm run build     # Compile TypeScript
 npm run dev       # Start development server on http://localhost:5000
 ```
 
