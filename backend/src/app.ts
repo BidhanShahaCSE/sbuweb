@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { authRouter } from './routes/auth.routes.js';
+import { verifySupabaseConnection } from './lib/supabase.js';
 
 dotenv.config();
 
@@ -15,12 +16,15 @@ app.use(express.json());
 // Routes
 app.use('/api/v1', authRouter);
 
-// Basic health check
-app.get('/api/v1/health', (_req, res) => {
-  res.json({
-    status: 'ok',
+// Health check also verifies Supabase configuration/connectivity.
+app.get('/api/v1/health', async (_req, res) => {
+  const supabaseStatus = await verifySupabaseConnection();
+
+  res.status(supabaseStatus.connected ? 200 : 503).json({
+    status: supabaseStatus.connected ? 'ok' : 'not_configured',
     message: 'Backend server is running',
-    authConnected: false,
+    supabaseConnected: supabaseStatus.connected,
+    supabaseMessage: supabaseStatus.message,
   });
 });
 
