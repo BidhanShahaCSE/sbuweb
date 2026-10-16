@@ -1,5 +1,5 @@
 /**
- * Verify the Supabase REST API without reading or writing application data.
+ * Verify the Supabase Auth API without reading or writing application data.
  * Environment variables are read at call time so dotenv has already loaded.
  */
 export async function verifySupabaseConnection(): Promise<{
@@ -17,18 +17,18 @@ export async function verifySupabaseConnection(): Promise<{
   }
 
   try {
-    const response = await fetch(`${supabaseUrl.replace(/\/+$/, '')}/rest/v1/`, {
-      method: 'GET',
-      headers: {
-        apikey: supabaseKey,
-        Authorization: `Bearer ${supabaseKey}`,
+    const response = await fetch(
+      `${supabaseUrl.replace(/\/+$/, '')}/auth/v1/settings`,
+      {
+        method: 'GET',
+        headers: { apikey: supabaseKey },
       },
-    });
+    );
 
     if (!response.ok) {
       return {
         connected: false,
-        message: `Supabase REST API returned HTTP ${response.status}`,
+        message: `Supabase Auth API returned HTTP ${response.status}`,
       };
     }
 
