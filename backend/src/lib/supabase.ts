@@ -1,14 +1,14 @@
-const supabaseUrl = process.env.SUPABASE_URL?.trim();
-const supabaseKey = process.env.SUPABASE_KEY?.trim();
-
 /**
  * Verify the Supabase REST API without reading or writing application data.
- * This keeps the setup lightweight and requires no extra npm dependency.
+ * Environment variables are read at call time so dotenv has already loaded.
  */
 export async function verifySupabaseConnection(): Promise<{
   connected: boolean;
   message: string;
 }> {
+  const supabaseUrl = process.env.SUPABASE_URL?.trim();
+  const supabaseKey = process.env.SUPABASE_KEY?.trim();
+
   if (!supabaseUrl || !supabaseKey) {
     return {
       connected: false,
