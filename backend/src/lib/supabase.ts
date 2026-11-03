@@ -21,7 +21,11 @@ export async function verifySupabaseConnection(): Promise<{
       `${supabaseUrl.replace(/\/+$/, '')}/auth/v1/settings`,
       {
         method: 'GET',
-        headers: { apikey: supabaseKey },
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+        },
+        signal: AbortSignal.timeout(5000),
       },
     );
 

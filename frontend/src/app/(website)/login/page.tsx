@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import {
   User,
   Mail,
@@ -16,11 +17,12 @@ import {
   X,
   Loader2,
   Sparkles,
+  ArrowLeft,
 } from 'lucide-react';
 
 type AuthMode = 'client-login' | 'client-register' | 'owner-login';
 
-export default function AuthPage() {
+export default function LoginPage() {
   const [mode, setMode] = useState<AuthMode>('client-login');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showNotice, setShowNotice] = useState(false);
@@ -139,13 +141,23 @@ export default function AuthPage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4 bg-slate-950 text-slate-100">
+    <div className="min-h-screen py-12 flex items-center justify-center p-4">
       <div className="w-full max-w-lg space-y-6">
+        <div className="flex items-center justify-between text-xs text-slate-400">
+          <Link href="/" className="inline-flex items-center gap-1.5 hover:text-white transition-colors">
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Homepage</span>
+          </Link>
+          <Link href="/admin/login" className="hover:text-blue-400 transition-colors">
+            Admin Portal Login →
+          </Link>
+        </div>
+
         {/* Header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-medium">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>sbuweb Authentication</span>
+            <span>Client & Partner Access</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white">
             {mode === 'client-login' && 'Client Portal'}
@@ -167,7 +179,7 @@ export default function AuthPage() {
               type="button"
               onClick={() => switchMode('client-login')}
               className={`py-2 px-2 text-xs md:text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5 ${
-                mode === 'client-login' ? 'bg-indigo-600 text-white font-semibold' : 'text-slate-400 hover:text-slate-200'
+                mode === 'client-login' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               <User className="w-4 h-4" />
@@ -177,7 +189,7 @@ export default function AuthPage() {
               type="button"
               onClick={() => switchMode('client-register')}
               className={`py-2 px-2 text-xs md:text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5 ${
-                mode === 'client-register' ? 'bg-indigo-600 text-white font-semibold' : 'text-slate-400 hover:text-slate-200'
+                mode === 'client-register' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               <User className="w-4 h-4" />
@@ -187,7 +199,7 @@ export default function AuthPage() {
               type="button"
               onClick={() => switchMode('owner-login')}
               className={`py-2 px-2 text-xs md:text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5 ${
-                mode === 'owner-login' ? 'bg-indigo-600 text-white font-semibold' : 'text-slate-400 hover:text-slate-200'
+                mode === 'owner-login' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               <Shield className="w-4 h-4" />
@@ -230,7 +242,7 @@ export default function AuthPage() {
                     placeholder="client@example.com"
                     value={clientLogin.email}
                     onChange={(e) => setClientLogin({ ...clientLogin, email: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   />
                 </div>
                 {errors.email && <p className="text-xs text-rose-400">• {errors.email}</p>}
@@ -245,7 +257,7 @@ export default function AuthPage() {
                     placeholder="••••••••"
                     value={clientLogin.password}
                     onChange={(e) => setClientLogin({ ...clientLogin, password: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-10 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-10 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   />
                   <button
                     type="button"
@@ -261,7 +273,7 @@ export default function AuthPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
               >
                 {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Sign In as Client</span>}
                 {!isSubmitting && <ArrowRight className="w-4 h-4" />}
@@ -281,7 +293,7 @@ export default function AuthPage() {
                     placeholder="Jane Doe"
                     value={clientRegister.fullName}
                     onChange={(e) => setClientRegister({ ...clientRegister, fullName: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   />
                 </div>
                 {errors.fullName && <p className="text-xs text-rose-400">• {errors.fullName}</p>}
@@ -296,7 +308,7 @@ export default function AuthPage() {
                     placeholder="jane@example.com"
                     value={clientRegister.email}
                     onChange={(e) => setClientRegister({ ...clientRegister, email: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   />
                 </div>
                 {errors.email && <p className="text-xs text-rose-400">• {errors.email}</p>}
@@ -312,7 +324,7 @@ export default function AuthPage() {
                       placeholder="United States"
                       value={clientRegister.country}
                       onChange={(e) => setClientRegister({ ...clientRegister, country: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500"
                     />
                   </div>
                   {errors.country && <p className="text-xs text-rose-400">• {errors.country}</p>}
@@ -327,7 +339,7 @@ export default function AuthPage() {
                       placeholder="+1234567890"
                       value={clientRegister.whatsappNumber}
                       onChange={(e) => setClientRegister({ ...clientRegister, whatsappNumber: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500"
                     />
                   </div>
                 </div>
@@ -342,7 +354,7 @@ export default function AuthPage() {
                     placeholder="Min 8 characters"
                     value={clientRegister.password}
                     onChange={(e) => setClientRegister({ ...clientRegister, password: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-10 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-10 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   />
                   <button
                     type="button"
@@ -364,7 +376,7 @@ export default function AuthPage() {
                     placeholder="••••••••"
                     value={clientRegister.confirmPassword}
                     onChange={(e) => setClientRegister({ ...clientRegister, confirmPassword: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-10 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-10 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   />
                   <button
                     type="button"
@@ -380,7 +392,7 @@ export default function AuthPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
               >
                 {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Create Client Account</span>}
                 {!isSubmitting && <ArrowRight className="w-4 h-4" />}
@@ -404,7 +416,7 @@ export default function AuthPage() {
                     placeholder="owner@sbuweb.internal"
                     value={ownerLogin.email}
                     onChange={(e) => setOwnerLogin({ ...ownerLogin, email: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   />
                 </div>
                 {errors.email && <p className="text-xs text-rose-400">• {errors.email}</p>}
@@ -419,7 +431,7 @@ export default function AuthPage() {
                     placeholder="••••••••"
                     value={ownerLogin.password}
                     onChange={(e) => setOwnerLogin({ ...ownerLogin, password: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-10 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-10 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   />
                   <button
                     type="button"
@@ -444,6 +456,6 @@ export default function AuthPage() {
           )}
         </div>
       </div>
-    </main>
+    </div>
   );
 }
